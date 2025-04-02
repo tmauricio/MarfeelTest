@@ -1,0 +1,77 @@
+version: '3.8'
+
+x-clickhouse-env: &clickhouse-env
+  CLICKHOUSE_USER: ${CLICKHOUSE_USER}
+  CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - ./server/clickhouse/init:/docker-entrypoint-initdb.d
+    environment: *clickhouse-env
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@localhost:8123/?query=SELECT%20version()"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+
+  device:
+    build:
+      context: ./server/device
+      dockerfile: Dockerfile
+    environment:
+      - TARGET_URL=http://backend:3030/sensors/ingest
+    networks:
+      - app_network
+
+  react-app:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_PORT=5173
+    volumes:
+      - ./client/src:/app/src
+    command: ["npm", "run", "dev", "--", "--host"]
+    networks:
+      - app_network
+    working_dir: /app
+    stdin_open: true
+    tty: true
+  
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3030:3030"
+      - "9229:9229"
+    volumes:
+      - ./backend/src:/app/src
+    command: ["npm", "run", "start"]
+    networks:
+      - app_network
+
+  keydb:
+    image: eqalpha/keydb:latest
+    container_name: keydb-server
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./keydb/keydb.conf:/etc/keydb/keydb.conf
+    command: >
+      keydb-server /etc/keydb/keydb.conf --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    restart: always
+
+networks:
+  app_network:
+    driver: bridge

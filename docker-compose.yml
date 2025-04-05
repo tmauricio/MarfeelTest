@@ -63,7 +63,6 @@ services:
 
   keydb:
     image: eqalpha/keydb:latest
-    container_name: keydb-server
     ports:
       - "6379:6379"
     volumes:
@@ -71,6 +70,8 @@ services:
     command: >
       keydb-server /etc/keydb/keydb.conf --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     restart: always
+    networks:
+      - app_network
 
 networks:
   app_network:

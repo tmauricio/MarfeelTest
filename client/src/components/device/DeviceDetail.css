@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+.titleDevice {
+	@apply font-bold text-center pb-6;
+}
+
+.tdName {
+	@apply py-4 pl-4 pr-3 text-sm font-medium bg-gray-100 text-gray-900;
+}
+
+.tdData {
+	@apply py-4 px-3 text-sm text-gray-500;
+}

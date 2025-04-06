@@ -1,9 +1,9 @@
 ### Time tracking:
-03/04/2025    2hs
-04/04/2025    3hs
-05/04/2025    4hs
-06/04/2025    6hs
-TOTAL:        15hs
+- 03/04/2025    2hs
+- 04/04/2025    3hs
+- 05/04/2025    4hs
+- 06/04/2025    6hs
+- TOTAL:        15hs
 
 
 
@@ -30,23 +30,25 @@ A new feature just has been requested by our clients. They want to be able to ch
 #### Response: 
 
 Considering a sparsely populated and low-concurrency database, it would surely be easier to query directly from the "readings" table, for example:
-
+```
 -- last minute data
 SELECT *
 FROM sensor_data.readings
 WHERE recorded_at >= now() - INTERVAL 1 HOUR;
-
+```
+```
 -- last day's data
 SELECT *
 FROM sensor_data.readings
 WHERE recorded_at >= now() - INTERVAL 1 DAY;
-
+```
 
 Now, taking into account that the table is highly concurrent and contains millions of records, the previous solution is no longer optimal. 
 In this case, it might be best to create auxiliary tables, for example, "readings_average_day" and "readings_average_hour" where the averaged values of the last hour or the last day are stored. This table would be populated with values every x time using a cron job. 
 I would also add a process that transfers the data from all these tables to a history table every x number of days to prevent them from growing too large and becoming more manageable.
 
 examples of tables to create. They would basically have the same fields but with average values:
+```
 CREATE TABLE IF NOT EXISTS sensor_data.readings_average_day (
     device_id String,
     temperature Float32,
@@ -76,3 +78,4 @@ CREATE TABLE IF NOT EXISTS sensor_data.readings_average_hour (
     recorded_at DateTime,
     anomaly_prob Float32
 ) ENGINE = MergeTree()
+```

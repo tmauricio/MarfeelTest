@@ -5,14 +5,14 @@ import { DeviceData } from '../../models/deviceData';
 import './DeviceDetail.css';
 
 export const DeviceDetail = () => {
-	const { deviceId } = useParams<{ deviceId: string }>();
+    const { deviceId } = useParams<{ deviceId: string }>();
 	const [deviceData, setDeviceData] = useState<DeviceData | null>(null);
     const [countdown, setCountdown] = useState(10);
 	const [loading, setLoading] = useState(true);
 
 	const fetchDeviceData = async () => {
 		try {
-			const response = await axios.get(`http://localhost:3030/sensors/id/device_${deviceId}`, {
+			const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/sensors/id/device_${deviceId}`, {
 				headers: {
 					authtoken: '123123123'
 				}
@@ -28,8 +28,6 @@ export const DeviceDetail = () => {
 	useEffect(() => {
         fetchDeviceData();
         setCountdown(10);
-		// const interval = setInterval(fetchDeviceData, 10000);
-		// return () => clearInterval(interval);
 	}, [deviceId]);
 
 
@@ -113,11 +111,8 @@ export const DeviceDetail = () => {
                 </div>
             </div>
 
-            <div className="bg-green-300 w-24 m-auto my-5 rounded-xl py-2 px-4 flex justify-between items-center">
-                <svg class="mr-3 size-5 animate-spin"  fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                </svg>
-                <div>{countdown}</div>
+            <div className="bg-gray-300 w-34 m-auto my-5 rounded-xl py-2 px-4 flex justify-between items-center">
+                Refresh in... {countdown}
             </div>
         </div>
 	);

@@ -34,10 +34,7 @@ export class SensorsController {
    */
   @Get('sensornames')
   async getSensorNames(
-    @Req() req: Request,
     @Res() res: Response,
-    @Param() params,
-    @Query('token') _token,
   ) {
     try {
       var result = await this.sensorsService.getDistinctDeviceIds();

@@ -21,13 +21,34 @@ services:
       retries: 5
       start_period: 10s
       timeout: 10s
-
-  device:
+  
+  backend:
     build:
-      context: ./server/device
+      context: ./backend
       dockerfile: Dockerfile
-    environment:
-      - TARGET_URL=http://backend:3030/sensors/ingest
+    ports:
+      - "3030:3030"
+      - "9229:9229"
+    volumes:
+      - ./backend/src:/app/src
+    command: ["npm", "run", "start"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3030/healthcheck || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - app_network
+
+  keydb:
+    image: eqalpha/keydb:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./keydb/keydb.conf:/etc/keydb/keydb.conf
+    command: >
+      keydb-server /etc/keydb/keydb.conf --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     networks:
       - app_network
 
@@ -47,29 +68,16 @@ services:
     working_dir: /app
     stdin_open: true
     tty: true
-  
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "3030:3030"
-      - "9229:9229"
-    volumes:
-      - ./backend/src:/app/src
-    command: ["npm", "run", "start"]
-    networks:
-      - app_network
 
-  keydb:
-    image: eqalpha/keydb:latest
-    ports:
-      - "6379:6379"
-    volumes:
-      - ./keydb/keydb.conf:/etc/keydb/keydb.conf
-    command: >
-      keydb-server /etc/keydb/keydb.conf --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
-    restart: always
+  device:
+    build:
+      context: ./server/device
+      dockerfile: Dockerfile
+    environment:
+      - TARGET_URL=http://backend:3030/sensors/ingest
+    depends_on:
+      backend:
+        condition: service_healthy
     networks:
       - app_network
 

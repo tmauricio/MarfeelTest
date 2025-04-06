@@ -1,4 +1,4 @@
-import { ClickHouseClient, Observable } from '@depyronick/nestjs-clickhouse';
+import { ClickHouseClient } from '@depyronick/nestjs-clickhouse';
 import { Inject, Injectable } from '@nestjs/common';
 import { ReadingEntity } from 'src/entities/reading.entity';
 
@@ -8,20 +8,6 @@ export class SensorsService {
     @Inject('CLICKHOUSE_SERVER')
 	  private clickHouseClient: ClickHouseClient
     ) {}
-
-  // Method to get all sensor readings
-  async findAll(): Promise<ReadingEntity[]> {
-    const data = await this.clickHouseClient
-      .queryPromise<ReadingEntity>(
-        `
-          SELECT *
-          FROM sensor_data.readings
-          ORDER BY recorded_at DESC
-        `
-      );
-    
-    return data as ReadingEntity[];
-  }
 
   // Method to find a reading by device ID
   async findByDeviceId(deviceId: string): Promise<ReadingEntity> {
